@@ -4,6 +4,8 @@ using AgroSolutions.Medicoes.Application.Interfaces.Services;
 using AgroSolutions.Medicoes.Application.Rules.Contexts;
 using AgroSolutions.Medicoes.Application.Rules.Implementations.Temperatura;
 using AgroSolutions.Medicoes.Domain.Enums;
+using AgroSolutions.Medicoes.Domain.Repositories;
+using Microsoft.Extensions.Logging;
 using Moq;
 using Shouldly;
 
@@ -13,15 +15,21 @@ public class MediaAltaTemperaturaRuleTests
 {
     private readonly Mock<IAlertaMedicaoQueryRepository> _alertaMedicaoQueryRepository;
     private readonly Mock<IEmailService> _emailService;
+    private readonly Mock<IAlertaRepository> _alertaRepository;
+    private readonly Mock<ILogger<MediaAltaTemperaturaRule>> _mockLogger;
     private readonly MediaAltaTemperaturaRule _rule;
 
     public MediaAltaTemperaturaRuleTests()
     {
         _alertaMedicaoQueryRepository = new Mock<IAlertaMedicaoQueryRepository>();
         _emailService = new Mock<IEmailService>();
+        _alertaRepository = new Mock<IAlertaRepository>();
+        _mockLogger = new Mock<ILogger<MediaAltaTemperaturaRule>>();
         _rule = new MediaAltaTemperaturaRule(
             _alertaMedicaoQueryRepository.Object,
-            _emailService.Object
+            _emailService.Object,
+            _alertaRepository.Object,
+            _mockLogger.Object
         );
     }
 

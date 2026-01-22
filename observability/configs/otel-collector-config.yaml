@@ -1,0 +1,48 @@
+receivers:
+  otlp:
+    protocols:
+      grpc:
+        endpoint: 0.0.0.0:4317
+      http:
+        endpoint: 0.0.0.0:4318
+
+processors:
+  batch:
+    timeout: 5s
+    send_batch_size: 1024
+
+exporters:
+  # Debug completo no log do Collector
+  logging:
+    loglevel: debug
+
+  # Exporter para o Tempo (OTLP gRPC)
+  otlp/tempo:
+    endpoint: tempo:4317
+    tls:
+      insecure: true
+
+  # Exporter Prometheus (métricas)
+  prometheus:
+    endpoint: 0.0.0.0:8889
+
+service:
+  telemetry:
+    logs:
+      level: debug   # 🔥 DEBUG do próprio Collector
+
+  pipelines:
+    traces:
+      receivers: [otlp]
+      processors: [batch]
+      exporters: [logging, otlp/tempo]
+
+    metrics:
+      receivers: [otlp]
+      processors: [batch]
+      exporters: [logging, prometheus]
+
+    logs:
+      receivers: [otlp]
+      processors: [batch]
+      exporters: [logging]

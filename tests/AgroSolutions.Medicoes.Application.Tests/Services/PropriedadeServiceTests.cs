@@ -3,6 +3,7 @@ using AgroSolutions.Medicoes.Application.Services;
 using AgroSolutions.Medicoes.Domain.Entities;
 using AgroSolutions.Medicoes.Domain.Exceptions;
 using AgroSolutions.Medicoes.Domain.Repositories;
+using Microsoft.Extensions.Logging;
 using Moq;
 using Shouldly;
 
@@ -12,11 +13,13 @@ public class PropriedadeServiceTests
 {
     private readonly Mock<IPropriedadeRepository> _repository;
     private readonly PropriedadeService _service;
+    private readonly Mock<ILogger<PropriedadeService>> _mockLogger;
 
     public PropriedadeServiceTests()
     {
         _repository = new Mock<IPropriedadeRepository>();
-        _service = new PropriedadeService(_repository.Object);
+        _mockLogger = new Mock<ILogger<PropriedadeService>>();
+        _service = new PropriedadeService(_repository.Object, _mockLogger.Object);
     }
 
     [Fact]

@@ -4,6 +4,7 @@ using AgroSolutions.Medicoes.Domain.Entities;
 using AgroSolutions.Medicoes.Domain.Enums;
 using AgroSolutions.Medicoes.Domain.Exceptions;
 using AgroSolutions.Medicoes.Domain.Repositories;
+using Microsoft.Extensions.Logging;
 using Moq;
 using Shouldly;
 
@@ -13,11 +14,13 @@ public class MedicaoServiceTests
 {
     private readonly Mock<IMedicaoRepository> _repository;
     private readonly MedicaoService _service;
+    private readonly Mock<ILogger<MedicaoService>> _mockLogger;
 
     public MedicaoServiceTests()
     {
         _repository = new Mock<IMedicaoRepository>();
-        _service = new MedicaoService(_repository.Object);
+        _mockLogger = new Mock<ILogger<MedicaoService>>();
+        _service = new MedicaoService(_repository.Object, _mockLogger.Object);
     }
 
     [Fact]

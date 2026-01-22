@@ -4,12 +4,18 @@ using MassTransit;
 
 namespace AgroSolutions.Medicoes.Worker.Consumers;
 
-public class ProdutorDataConsumer(IProdutorService _service) : IConsumer<ProdutorDataMessage>
+public class ProdutorDataConsumer(
+    IProdutorService _service, 
+    ILogger<ProdutorDataConsumer> _logger
+) : IConsumer<ProdutorDataMessage>
 {
     public async Task Consume(ConsumeContext<ProdutorDataMessage> context)
     {
-        var msg = context.Message;
+        _logger.LogInformation(
+            "Mensagem recebida na fila de produtores: {@Message}",
+            context.Message
+        );
 
-        await _service.ProcessarAsync(msg, context.CancellationToken);
+        await _service.ProcessarAsync(context.Message, context.CancellationToken);
     }
 }

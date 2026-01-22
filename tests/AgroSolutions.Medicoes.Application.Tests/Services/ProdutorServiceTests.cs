@@ -3,6 +3,7 @@ using AgroSolutions.Medicoes.Application.Services;
 using AgroSolutions.Medicoes.Domain.Entities;
 using AgroSolutions.Medicoes.Domain.Exceptions;
 using AgroSolutions.Medicoes.Domain.Repositories;
+using Microsoft.Extensions.Logging;
 using Moq;
 using Shouldly;
 
@@ -12,11 +13,13 @@ public class ProdutorServiceTests
 {
     private readonly Mock<IProdutorRepository> _repository;
     private readonly ProdutorService _service;
+    private readonly Mock<ILogger<ProdutorService>> _mockLogger;
 
     public ProdutorServiceTests()
     {
         _repository = new Mock<IProdutorRepository>();
-        _service = new ProdutorService(_repository.Object);
+        _mockLogger = new Mock<ILogger<ProdutorService>>();
+        _service = new ProdutorService(_repository.Object, _mockLogger.Object);
     }
 
     [Fact]

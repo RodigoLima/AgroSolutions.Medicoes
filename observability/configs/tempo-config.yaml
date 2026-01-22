@@ -1,0 +1,58 @@
+server:
+  http_listen_port: 3200
+
+distributor:
+  receivers:
+    otlp:
+      protocols:
+        grpc:
+          endpoint: 0.0.0.0:4317
+        http:
+          endpoint: 0.0.0.0:4318
+
+ingester:
+  # Menos churn de blocos em ambiente local
+  max_block_duration: 10m
+
+compactor:
+  compaction:
+    # ✅ Retenção correta (único lugar válido)
+    block_retention: 6h
+
+metrics_generator:
+  ring:
+    kvstore:
+      store: inmemory
+
+  processor:
+    span_metrics:
+      dimensions:
+        - service.name
+        - span.name
+        - http.method
+        - http.status_code
+
+    service_graphs:
+      dimensions:
+        - service.name
+
+  registry:
+    external_labels:
+      source: tempo
+      cluster: docker-compose
+
+  storage:
+    path: /tmp/tempo/generator/wal
+    remote_write:
+      - url: http://prometheus:9090/api/v1/write
+        send_exemplars: true
+
+storage:
+  trace:
+    backend: local
+
+    wal:
+      path: /tmp/tempo/wal
+
+    local:
+      path: /tmp/tempo/blocks

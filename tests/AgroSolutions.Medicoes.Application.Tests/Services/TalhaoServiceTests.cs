@@ -3,6 +3,7 @@ using AgroSolutions.Medicoes.Application.Services;
 using AgroSolutions.Medicoes.Domain.Entities;
 using AgroSolutions.Medicoes.Domain.Exceptions;
 using AgroSolutions.Medicoes.Domain.Repositories;
+using Microsoft.Extensions.Logging;
 using Moq;
 using Shouldly;
 
@@ -11,12 +12,14 @@ namespace AgroSolutions.Medicoes.Application.Tests.Services;
 public class TalhaoServiceTests
 {
     private readonly Mock<ITalhaoRepository> _repository;
+    private readonly Mock<ILogger<TalhaoService>> _mockLogger;
     private readonly TalhaoService _service;
 
     public TalhaoServiceTests()
     {
         _repository = new Mock<ITalhaoRepository>();
-        _service = new TalhaoService(_repository.Object);
+        _mockLogger = new Mock<ILogger<TalhaoService>>();
+        _service = new TalhaoService(_repository.Object, _mockLogger.Object);
     }
 
     [Fact]

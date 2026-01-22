@@ -1,0 +1,69 @@
+apiVersion: 1
+
+datasources:
+
+  - name: Prometheus
+    uid: prometheus
+    type: prometheus
+    access: proxy
+    url: http://prometheus:9090
+    isDefault: true
+    editable: true
+    jsonData:
+      timeInterval: 15s
+
+  - name: Loki
+    uid: loki
+    type: loki
+    access: proxy
+    url: http://loki:3100
+    editable: true
+    jsonData:
+      maxLines: 1000
+      derivedFields:
+        - name: TraceID
+          matcherRegex: "trace_id[\"=: ]+([a-f0-9]{32})"
+          url: "$${__value.raw}"
+          datasourceUid: tempo
+
+  - name: Tempo
+    uid: tempo
+    type: tempo
+    access: proxy
+    url: http://tempo:3200
+    editable: true
+    jsonData:
+      nodeGraph:
+        enabled: true
+      tracesToMetrics:
+        datasourceUid: prometheus
+        tags:
+          - service.name
+          - span.name
+          - http.method
+          - http.status_code
+      tracesToLogs:
+        datasourceUid: loki
+        tags:
+          - service.name
+          - deployment.environment
+      serviceMap:
+        datasourceUid: prometheus
+
+  - name: PostgreSQL
+    uid: postgres
+    type: postgres
+    access: proxy
+    url: postgres:5432
+    database: dashAgro
+    user: postgres
+    editable: true
+    jsonData:
+      sslmode: disable
+      maxOpenConns: 100
+      maxIdleConns: 100
+      connMaxLifetime: 14400
+      postgresVersion: 1500
+      timescaledb: false
+    secureJsonData:
+      password: postgres

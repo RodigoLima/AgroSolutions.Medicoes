@@ -4,12 +4,18 @@ using MassTransit;
 
 namespace AgroSolutions.Medicoes.Worker.Consumers;
 
-public class TalhaoDataConsumer(ITalhaoService _service) : IConsumer<TalhaoDataMessage>
+public class TalhaoDataConsumer(
+    ITalhaoService _service, 
+    ILogger<TalhaoDataConsumer> _logger
+) : IConsumer<TalhaoDataMessage>
 {
     public async Task Consume(ConsumeContext<TalhaoDataMessage> context)
     {
-        var msg = context.Message;
+        _logger.LogInformation(
+            "Mensagem recebida na fila de talhões: {@Message}",
+            context.Message
+        );
 
-        await _service.ProcessarAsync(msg, context.CancellationToken);
+        await _service.ProcessarAsync(context.Message, context.CancellationToken);
     }
 }
