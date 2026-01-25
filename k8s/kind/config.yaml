@@ -1,0 +1,27 @@
+kind: Cluster
+apiVersion: kind.x-k8s.io/v1alpha4
+name: dev-worker
+
+nodes:
+  - role: control-plane
+    extraPortMappings:
+      # Mailpit UI
+      - containerPort: 30025
+        hostPort: 30025
+      # Mailpit SMTP
+      - containerPort: 31025
+        hostPort: 31025
+      # RabbitMQ AMQP
+      - containerPort: 30672
+        hostPort: 30672
+      # RabbitMQ UI
+      - containerPort: 31672
+        hostPort: 31672
+      # Grafana
+      - containerPort: 30000
+        hostPort: 30000
+      # PostgreSQL
+      - containerPort: 30032
+        hostPort: 30032
+
+  - role: worker

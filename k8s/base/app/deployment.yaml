@@ -1,0 +1,85 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: agro-medicoes-worker
+  namespace: agro-medicoes
+  labels:
+    app: agro-medicoes-worker
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: agro-medicoes-worker
+  template:
+    metadata:
+      labels:
+        app: agro-medicoes-worker
+    spec:
+      terminationGracePeriodSeconds: 30
+      initContainers:
+        - name: wait-for-postgres
+          image: postgres:16-alpine
+          command:
+            - sh
+            - -c
+            - |
+              until pg_isready -h postgres -p 5432; do
+                echo "⏳ Aguardando Postgres..."
+                sleep 2
+              done
+
+        - name: wait-for-rabbitmq
+          image: busybox:1.36
+          command:
+            - sh
+            - -c
+            - |
+              until nc -z rabbitmq 5672; do
+                echo "⏳ Aguardando RabbitMQ..."
+                sleep 2
+              done
+
+        - name: wait-for-mailpit
+          image: busybox:1.36
+          command:
+            - sh
+            - -c
+            - |
+              until nc -z mailpit 1025; do
+                echo "⏳ Aguardando MailPit..."
+                sleep 2
+              done
+              
+      containers:
+        - name: agro-medicoes-worker
+          image: agro-medicoes-worker:dev
+          imagePullPolicy: IfNotPresent
+
+          # Variáveis de ambiente
+          env:
+            - name: RabbitMq__Username
+              valueFrom:
+                secretKeyRef:
+                  name: rabbitmq-auth
+                  key: RABBITMQ_DEFAULT_USER
+
+            - name: RabbitMq__Password
+              valueFrom:
+                secretKeyRef:
+                  name: rabbitmq-auth
+                  key: RABBITMQ_DEFAULT_PASS
+
+          envFrom:
+            - secretRef:
+                name: app-connection-string
+            - configMapRef:
+                name: agro-medicoes-config
+
+          # Recursos (muito recomendado)
+          resources:
+            requests:
+              cpu: "100m"
+              memory: "128Mi"
+            limits:
+              cpu: "500m"
+              memory: "512Mi"

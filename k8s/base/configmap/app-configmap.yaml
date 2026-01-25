@@ -1,0 +1,17 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: agro-medicoes-config
+  namespace: agro-medicoes
+  labels:
+    app: agro-medicoes-config
+data:
+  ASPNETCORE_ENVIRONMENT: "${ASPNETCORE_ENVIRONMENT}"
+
+  RabbitMq__Host: "${RABBITMQ_HOST}"
+  RabbitMq__Port: "${RABBITMQ_PORT}"
+
+  Email__Host: "${EMAIL_HOST}"
+  Email__Port: "${EMAIL_PORT}"
+  Email__UseSsl: "${EMAIL_USE_SSL}"
+  Email__From: "${EMAIL_FROM}"

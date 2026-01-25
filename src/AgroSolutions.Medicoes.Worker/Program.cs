@@ -1,11 +1,13 @@
 using AgroSolutions.Medicoes.Application;
 using AgroSolutions.Medicoes.Application.Services;
 using AgroSolutions.Medicoes.Infrastructure;
+using AgroSolutions.Medicoes.Infrastructure.Database;
 using AgroSolutions.Medicoes.Infrastructure.Messaging;
 using AgroSolutions.Medicoes.Infrastructure.Observability;
 using AgroSolutions.Medicoes.Worker;
 using AgroSolutions.Medicoes.Worker.Consumers;
 using MassTransit;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using Serilog;
 using Serilog.Enrichers.Span;
@@ -14,7 +16,7 @@ using Serilog.Events;
 
 var builder = Host.CreateApplicationBuilder(args);
 
-var environment = builder.Configuration["Environment"] ?? "development";
+var environment = builder.Environment.EnvironmentName;
 
 // Configure Serilog
 Log.Logger = new LoggerConfiguration()
@@ -50,12 +52,16 @@ builder.Services.AddObservability(builder.Configuration);
 
 builder.Services.AddHostedService<Worker>();
 builder.Services.Configure<EmailSettings>(
-    builder.Configuration.GetSection("Email"));
+    builder.Configuration.GetSection("Email")
+);
 builder.Services.AddApplication();
 builder.Services.AddInfrastructure(builder.Configuration);
 
 builder.Services.Configure<RabbitMqSettings>(
-    builder.Configuration.GetSection("RabbitMq"));
+    builder.Configuration.GetSection("RabbitMq")
+);
+
+Console.WriteLine("RabbitMq:Port = " + builder.Configuration["RabbitMq:Port"]);
 
 builder.Services.AddMassTransit(x =>
 {
@@ -79,4 +85,9 @@ builder.Services.AddMassTransit(x =>
 });
 
 var host = builder.Build();
+using (var scope = host.Services.CreateScope())
+{
+    var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+    db.Database.Migrate();
+}
 host.Run();
