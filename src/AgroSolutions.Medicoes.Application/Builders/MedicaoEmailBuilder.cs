@@ -110,9 +110,9 @@ public class MedicaoEmailBuilder
     {
         return tipo switch
         {
-            TipoAlerta.Alta_Temperatura or TipoAlerta.Baixa_Temperatura => "Alerta de altas temperaturas.",
-            TipoAlerta.Alta_Umidade or TipoAlerta.Baixa_Umidade => "Alerta de seca.",
-            TipoAlerta.Excesso_chuva or TipoAlerta.Seca => "Alerta de enchente.",
+            TipoAlerta.Alta_Temperatura or TipoAlerta.Baixa_Temperatura => "Alerta temperatura.",
+            TipoAlerta.Alta_Umidade or TipoAlerta.Baixa_Umidade => "Alerta de umidade.",
+            TipoAlerta.Excesso_chuva or TipoAlerta.Seca => "Alerta de precipitação.",
             _ => string.Empty
         };
     }

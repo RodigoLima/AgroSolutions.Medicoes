@@ -1,0 +1,43 @@
+name: Execute All Tests
+
+on:
+  workflow_call:
+    inputs:
+      dotnet-env:
+        required: true
+        type: string
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+        - name: Checkout
+          uses: actions/checkout@v4
+
+        - name: Restore
+          run: dotnet restore
+
+        - name: Build
+          run: dotnet build --configuration Release --no-restore
+
+        - name: Setup .NET
+          uses: actions/setup-dotnet@v4
+          with:
+            dotnet-version: ${{ inputs.dotnet-env }}
+            cache: true
+            cache-dependency-path: '**/packages.lock.json'
+
+        - name: Domain Tests
+          run: >
+            dotnet test tests/AgroSolutions.Medicoes.Domain.Tests
+            --configuration Release
+            --no-build
+            --verbosity minimal
+
+        - name: Application Tests
+          run: >
+            dotnet test tests/AgroSolutions.Medicoes.Application.Tests 
+            --configuration Release
+            --no-build 
+            --verbosity minimal

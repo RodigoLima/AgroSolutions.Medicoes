@@ -49,12 +49,14 @@ public class MediaAltaTemperaturaRuleTests
         result.ShouldBeTrue();
     }
 
-    [Fact]
-    public void IsApplicable_Deve_Retornar_False_Quando_Tipo_Nao_For_Temperatura()
+    [Theory]
+    [InlineData(TipoMedicao.Precipitacao)]
+    [InlineData(TipoMedicao.Umidade)]
+    public void IsApplicable_Deve_Retornar_False_Quando_Tipo_Nao_For_Temperatura(TipoMedicao tipo)
     {
         //Arrange
         var context = new RegraPeriodoContext(
-            TipoMedicao.Precipitacao,
+            tipo,
             DateTime.UtcNow
         );
 
@@ -70,6 +72,7 @@ public class MediaAltaTemperaturaRuleTests
     {
         // Arrange
         var referencia = DateTime.UtcNow;
+        var dataInicio = referencia.AddHours(-6);
 
         var context = new RegraPeriodoContext(
             TipoMedicao.Temperatura,
@@ -77,25 +80,27 @@ public class MediaAltaTemperaturaRuleTests
         );
 
         _alertaMedicaoQueryRepository
-            .Setup(a => a.ObtemMedicaoMediaAsync(TipoMedicao.Temperatura, referencia.AddHours(-6), referencia, CancellationToken.None))
+            .Setup(a => a.ObtemMedicaoMediaAsync(TipoMedicao.Temperatura, dataInicio, referencia, CancellationToken.None))
             .ReturnsAsync(new List<MedicaoMediaDTO>
             {
                 new()
                     {
+                        IdTalhao = Guid.NewGuid(),
+                        NomeTalhao = "Talhão 1",
+                        NomePropriedade = "Propriedade 1",
+                        EmailProdutor = "produtor@mail.com",
                         MediaValor = 35
                     }
             });
+
+        _alertaRepository
+            .Setup(a => a.ExistsAsync(It.IsAny<Guid>(), dataInicio, It.IsAny<TipoAlerta>(), CancellationToken.None))
+            .ReturnsAsync(false);
 
         // Act
         await _rule.ValidateAsync(context, CancellationToken.None);
 
         // Assert
-        // await _emailService.Received(1)
-        //     .EnviarEmailAsync(
-        //         Arg.Any<string>(),
-        //         Arg.Any<string>(),
-        //         Arg.Any<string>());
-
         _emailService.Verify(e => e.EnviarEmailAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()), Times.Once);
     }
 
@@ -104,6 +109,7 @@ public class MediaAltaTemperaturaRuleTests
     {
         // Arrange
         var referencia = DateTime.UtcNow;
+        var dataInicio = referencia.AddHours(-6);
 
         var context = new RegraPeriodoContext(
             TipoMedicao.Temperatura,
@@ -111,11 +117,15 @@ public class MediaAltaTemperaturaRuleTests
         );
 
         _alertaMedicaoQueryRepository
-            .Setup(a => a.ObtemMedicaoMediaAsync(TipoMedicao.Temperatura, referencia.AddHours(-6), referencia, CancellationToken.None))
+            .Setup(a => a.ObtemMedicaoMediaAsync(TipoMedicao.Temperatura, dataInicio, referencia, CancellationToken.None))
             .ReturnsAsync(new List<MedicaoMediaDTO>
             {
                 new()
                     {
+                        IdTalhao = Guid.NewGuid(),
+                        NomeTalhao = "Talhão 1",
+                        NomePropriedade = "Propriedade 1",
+                        EmailProdutor = "produtor@mail.com",
                         MediaValor = 30
                     }
             });
@@ -132,6 +142,7 @@ public class MediaAltaTemperaturaRuleTests
     {
         // Arrange
         var referencia = DateTime.UtcNow;
+        var dataInicio = referencia.AddHours(-6);
 
         var context = new RegraPeriodoContext(
             TipoMedicao.Temperatura,
@@ -139,14 +150,55 @@ public class MediaAltaTemperaturaRuleTests
         );
 
         _alertaMedicaoQueryRepository
-            .Setup(a => a.ObtemMedicaoMediaAsync(TipoMedicao.Temperatura, referencia.AddHours(-6), referencia, CancellationToken.None))
+            .Setup(a => a.ObtemMedicaoMediaAsync(TipoMedicao.Temperatura, dataInicio, referencia, CancellationToken.None))
             .ReturnsAsync(new List<MedicaoMediaDTO>
             {
                 new()
                     {
+                        IdTalhao = Guid.NewGuid(),
+                        NomeTalhao = "Talhão 1",
+                        NomePropriedade = "Propriedade 1",
+                        EmailProdutor = "produtor@mail.com",
                         MediaValor = 25
                     }
             });
+
+        // Act
+        await _rule.ValidateAsync(context, CancellationToken.None);
+
+        // Assert
+        _emailService.Verify(e => e.EnviarEmailAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task ValidateAsync_Nao_Deve_Enviar_Email_Quando_Ja_Tiver_Enviado_Dentro_Do_Tempo()
+    {
+        // Arrange
+        var referencia = DateTime.UtcNow;
+        var dataInicio = referencia.AddHours(-6);
+
+        var context = new RegraPeriodoContext(
+            TipoMedicao.Temperatura,
+            referencia
+        );
+
+        _alertaMedicaoQueryRepository
+            .Setup(a => a.ObtemMedicaoMediaAsync(TipoMedicao.Temperatura, dataInicio, referencia, CancellationToken.None))
+            .ReturnsAsync(new List<MedicaoMediaDTO>
+            {
+                new()
+                    {
+                        IdTalhao = Guid.NewGuid(),
+                        NomeTalhao = "Talhão 1",
+                        NomePropriedade = "Propriedade 1",
+                        EmailProdutor = "produtor@mail.com",
+                        MediaValor = 35
+                    }
+            });
+
+        _alertaRepository
+            .Setup(a => a.ExistsAsync(It.IsAny<Guid>(), dataInicio, It.IsAny<TipoAlerta>(), CancellationToken.None))
+            .ReturnsAsync(true);
 
         // Act
         await _rule.ValidateAsync(context, CancellationToken.None);
@@ -160,6 +212,7 @@ public class MediaAltaTemperaturaRuleTests
     {
         // Arrange
         var referencia = DateTime.UtcNow;
+        var dataInicio = referencia.AddHours(-6);
 
         var context = new RegraPeriodoContext(
             TipoMedicao.Temperatura,
@@ -167,11 +220,15 @@ public class MediaAltaTemperaturaRuleTests
         );
 
         _alertaMedicaoQueryRepository
-            .Setup(a => a.ObtemMedicaoMediaAsync(TipoMedicao.Temperatura, referencia.AddHours(-6), referencia, CancellationToken.None))
+            .Setup(a => a.ObtemMedicaoMediaAsync(TipoMedicao.Temperatura, dataInicio, referencia, CancellationToken.None))
             .ReturnsAsync(new List<MedicaoMediaDTO>
             {
-                new()
+               new()
                     {
+                        IdTalhao = Guid.NewGuid(),
+                        NomeTalhao = "Talhão 1",
+                        NomePropriedade = "Propriedade 1",
+                        EmailProdutor = "produtor@mail.com",
                         MediaValor = 25
                     }
             });
@@ -183,7 +240,7 @@ public class MediaAltaTemperaturaRuleTests
 
         _alertaMedicaoQueryRepository.Verify(e => e.ObtemMedicaoMediaAsync(
             TipoMedicao.Temperatura,
-                referencia.AddHours(-6),
+                dataInicio,
                 referencia,
                 CancellationToken.None
         ), Times.Once);

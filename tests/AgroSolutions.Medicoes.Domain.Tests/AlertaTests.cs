@@ -9,13 +9,19 @@ public class AlertaTests
 {
     #region Constructor
 
-    [Fact]
-    public void Deve_criar_alerta_com_dados_validos()
+    [Theory]
+    [InlineData(TipoAlerta.Alta_Temperatura)]
+    [InlineData(TipoAlerta.Baixa_Temperatura)]
+    [InlineData(TipoAlerta.Alta_Umidade)]
+    [InlineData(TipoAlerta.Baixa_Umidade)]
+    [InlineData(TipoAlerta.Excesso_chuva)]
+    [InlineData(TipoAlerta.Seca)]
+    public void Deve_criar_alerta_com_dados_validos(TipoAlerta tipo)
     {
         // Act
         var idTalhao = Guid.NewGuid();
         var dataAlerta = DateTime.UtcNow;
-        var alerta = new Alerta(idTalhao,dataAlerta, TipoMedicao.Precipitacao);
+        var alerta = new Alerta(idTalhao,dataAlerta, tipo);
 
         // Assert
         alerta.ShouldNotBeNull();
@@ -28,7 +34,7 @@ public class AlertaTests
     {
         // Act
         var exception = Should.Throw<DomainException>(
-            () => new Alerta(Guid.Empty, DateTime.UtcNow, TipoMedicao.Precipitacao)
+            () => new Alerta(Guid.Empty, DateTime.UtcNow, TipoAlerta.Seca)
         );
 
         // Assert
@@ -40,7 +46,7 @@ public class AlertaTests
     {
         // Act
         var exception = Should.Throw<DomainException>(
-            () => new Alerta(Guid.NewGuid(), DateTime.MinValue, TipoMedicao.Precipitacao)
+            () => new Alerta(Guid.NewGuid(), DateTime.MinValue, TipoAlerta.Alta_Umidade)
         );
 
         // Assert
@@ -52,7 +58,7 @@ public class AlertaTests
     {
         // Act
         var exception = Should.Throw<DomainException>(
-            () => new Alerta(Guid.NewGuid(), DateTime.UtcNow, (TipoMedicao)99)
+            () => new Alerta(Guid.NewGuid(), DateTime.UtcNow, (TipoAlerta)99)
         );
 
         // Assert
@@ -134,7 +140,7 @@ public class AlertaTests
     {
         // Arrange
         var alerta = CriarAlertaValido();
-        var novoTipo = TipoMedicao.Umidade;
+        var novoTipo = TipoAlerta.Alta_Umidade;
 
         // Act
         alerta.DefinirTipo(novoTipo);
@@ -151,7 +157,7 @@ public class AlertaTests
 
         // Act
         var exception = Should.Throw<DomainException>(
-            () => alerta.DefinirTipo((TipoMedicao)99)
+            () => alerta.DefinirTipo((TipoAlerta)99)
         );
 
         // Assert
@@ -163,7 +169,7 @@ public class AlertaTests
     #region Helpers
 
     private static Alerta CriarAlertaValido()
-        => new(Guid.NewGuid(), DateTime.UtcNow, TipoMedicao.Temperatura);
+        => new(Guid.NewGuid(), DateTime.UtcNow, TipoAlerta.Alta_Temperatura);
 
     #endregion
 }
