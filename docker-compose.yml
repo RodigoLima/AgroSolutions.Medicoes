@@ -57,81 +57,90 @@ services:
       retries: 5
       start_period: 10s
 
-  # rabbitmq:
-  #   image: rabbitmq:3-management-alpine
-  #   container_name: rabbitmq
-  #   restart: unless-stopped
-  #   environment:
-  #     RABBITMQ_DEFAULT_USER: ${RABBITMQ_DEFAULT_USER}
-  #     RABBITMQ_DEFAULT_PASS: ${RABBITMQ_DEFAULT_PASS}
-  #   ports:
-  #     - "5672:5672"   # AMQP protocol
-  #     - "15672:15672" # Management UI
-  #   volumes:
-  #     - rabbitmq_data:/var/lib/rabbitmq
-  #   networks:
-  #     - monitoring
-  #   healthcheck:
-  #     test: ["CMD", "rabbitmq-diagnostics", "ping"]
-  #     interval: 10s
-  #     timeout: 5s
-  #     retries: 5
+  rabbitmq:
+    image: rabbitmq:3-management-alpine
+    container_name: rabbitmq
+    restart: unless-stopped
+    environment:
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_DEFAULT_USER}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_DEFAULT_PASS}
+    ports:
+      - "5672:5672"   # AMQP protocol
+      - "15672:15672" # Management UI
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+    networks:
+      - monitoring
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
-  # otel-collector:
-  #   image: otel/opentelemetry-collector-contrib:0.91.0
-  #   container_name: otel-collector
-  #   command: ["--config=/etc/otel-collector-config.yaml"]
-  #   volumes:
-  #     - ./observability/configs/otel-collector-config.yaml:/etc/otel-collector-config.yaml
-  #   ports:
-  #     - "4317:4317"   # OTLP gRPC receiver
-  #     - "4318:4318"   # OTLP HTTP receiver
-  #     - "8888:8888"   # Prometheus metrics exposed by the collector
-  #     - "8889:8889"   # Prometheus exporter metrics
-  #   networks:
-  #     - monitoring
+  otel-collector:
+    image: otel/opentelemetry-collector-contrib:0.91.0
+    container_name: otel-collector
+    command: ["--config=/etc/otel-collector-config.yaml"]
+    volumes:
+      - ./observability/configs/otel-collector-config.yaml:/etc/otel-collector-config.yaml
+    ports:
+      - "4317:4317"   # OTLP gRPC receiver
+      - "4318:4318"   # OTLP HTTP receiver
+      - "8888:8888"   # Prometheus metrics exposed by the collector
+      - "8889:8889"   # Prometheus exporter metrics
+    networks:
+      - monitoring
 
-  # loki:
-  #   image: grafana/loki:2.9.3
-  #   container_name: loki
-  #   command: -config.file=/etc/loki/loki-config.yaml
-  #   volumes:
-  #     - ./observability/configs/loki-config.yaml:/etc/loki/loki-config.yaml
-  #     - loki_data:/loki
-  #   ports:
-  #     - "3100:3100"
-  #   networks:
-  #     - monitoring
+  loki:
+    image: grafana/loki:2.9.3
+    container_name: loki
+    command: -config.file=/etc/loki/loki-config.yaml
+    volumes:
+      - ./observability/configs/loki-config.yaml:/etc/loki/loki-config.yaml
+      - loki_data:/loki
+    ports:
+      - "3100:3100"
+    networks:
+      - monitoring
 
-  # prometheus:
-  #   image: prom/prometheus:v2.48.1
-  #   container_name: prometheus
-  #   command:
-  #     - '--config.file=/etc/prometheus/prometheus.yml'
-  #     - '--storage.tsdb.path=/prometheus'
-  #     - '--web.console.libraries=/etc/prometheus/console_libraries'
-  #     - '--web.console.templates=/etc/prometheus/consoles'
-  #     - '--web.enable-lifecycle'
-  #   volumes:
-  #     - ./observability/configs/prometheus.yml:/etc/prometheus/prometheus.yml
-  #     - prometheus_data:/prometheus
-  #   ports:
-  #     - "9090:9090"
-  #   networks:
-  #     - monitoring
+  prometheus:
+    image: prom/prometheus:v2.48.1
+    container_name: prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/etc/prometheus/console_libraries'
+      - '--web.console.templates=/etc/prometheus/consoles'
+      - '--web.enable-lifecycle'
+    volumes:
+      - ./observability/configs/prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus_data:/prometheus
+    ports:
+      - "9090:9090"
 
-  # tempo:
-  #   image: grafana/tempo:2.3.1
-  #   container_name: tempo
-  #   command: ["-config.file=/etc/tempo/tempo-config.yaml"]
-  #   volumes:
-  #     - ./observability/configs/tempo-config.yaml:/etc/tempo/tempo-config.yaml
-  #     - tempo_data:/tmp/tempo
-  #   ports:
-  #     - "3200:3200"   # tempo
-  #     - "4319:4317"   # otlp grpc (mapped to different port to avoid conflict)
-  #   networks:
-  #     - monitoring
+    depends_on:
+      otel-collector:
+        condition: service_started
+
+    networks:
+      - monitoring
+
+  tempo:
+    image: grafana/tempo:2.3.1
+    container_name: tempo
+    command: ["-config.file=/etc/tempo/tempo-config.yaml"]
+    volumes:
+      - ./observability/configs/tempo-config.yaml:/etc/tempo/tempo-config.yaml
+      - tempo_data:/tmp/tempo
+    ports:
+      - "3200:3200"
+
+    depends_on:
+      otel-collector:
+        condition: service_started
+
+    networks:
+      - monitoring
 
   grafana:
     image: grafana/grafana:latest
@@ -148,26 +157,26 @@ services:
       - monitoring
     depends_on:
       - postgres
-      # - loki
-      # - tempo
-      # - prometheus
+      - loki
+      - tempo
+      - prometheus
 
-  # mailpit:
-  #   image: axllent/mailpit:latest
-  #   container_name: mailpit
-  #   ports:
-  #     - "8025:8025"  # Interface web
-  #     - "1025:1025"  # SMTP server
-  #   networks:
-  #     - monitoring
-  #   restart: unless-stopped
+  mailpit:
+    image: axllent/mailpit:latest
+    container_name: mailpit
+    ports:
+      - "8025:8025"  # Interface web
+      - "1025:1025"  # SMTP server
+    networks:
+      - monitoring
+    restart: unless-stopped
 
 volumes:
   postgres_data:
-  # rabbitmq_data:
-  # loki_data:
-  # prometheus_data:
-  # tempo_data:
+  rabbitmq_data:
+  loki_data:
+  prometheus_data:
+  tempo_data:
   grafana_data:
 
 networks:

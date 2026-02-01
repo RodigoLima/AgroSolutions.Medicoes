@@ -28,11 +28,13 @@ public class Worker : BackgroundService
             try
             {
                 using var activity = ActivitySource.StartActivity(
-                    "processar-mensagens",
+                    "Worker.ExecuteCycle",
                     ActivityKind.Internal
                 );
 
-                activity?.SetTag("worker.loop", true);
+                activity?.SetTag("worker.type", "background");
+                activity?.SetTag("worker.interval_ms", INTERVALO.TotalMilliseconds);
+                activity?.SetTag("worker.iteration", DateTime.UtcNow.ToString("O"));
                 
                 _logger.LogInformation("Iniciou a execução da regra do worker.");
                 using var scope = _scopeFactory.CreateScope();

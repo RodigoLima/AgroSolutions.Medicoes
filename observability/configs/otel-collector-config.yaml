@@ -12,10 +12,6 @@ processors:
     send_batch_size: 1024
 
 exporters:
-  # Debug completo no log do Collector
-  logging:
-    loglevel: debug
-
   # Exporter para o Tempo (OTLP gRPC)
   otlp/tempo:
     endpoint: tempo:4317
@@ -25,24 +21,34 @@ exporters:
   # Exporter Prometheus (métricas)
   prometheus:
     endpoint: 0.0.0.0:8889
+    resource_to_telemetry_conversion:
+      enabled: true
+
+  # Exporter Loki (logs)
+  loki:
+    endpoint: http://loki:3100/loki/api/v1/push
+    default_labels_enabled:
+      exporter: true
+      job: true
+      level: true
 
 service:
   telemetry:
     logs:
-      level: debug   # 🔥 DEBUG do próprio Collector
+      level: info 
 
   pipelines:
     traces:
       receivers: [otlp]
       processors: [batch]
-      exporters: [logging, otlp/tempo]
+      exporters: [otlp/tempo]
 
     metrics:
       receivers: [otlp]
       processors: [batch]
-      exporters: [logging, prometheus]
+      exporters: [prometheus]
 
     logs:
       receivers: [otlp]
       processors: [batch]
-      exporters: [logging]
+      exporters: [loki]

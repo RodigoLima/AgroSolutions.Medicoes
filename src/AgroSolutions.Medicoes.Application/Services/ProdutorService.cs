@@ -14,6 +14,11 @@ public class ProdutorService(
 {
     public async Task ProcessarAsync(ProdutorDataMessage produtorData, CancellationToken cancellationToken)
     {
+        _logger.LogInformation(
+            "Processando produtor: {@produtor}",
+            produtorData
+        );
+
         try
         {
             var produtor = new Produtor(
@@ -21,6 +26,10 @@ public class ProdutorService(
                 produtorData.Email
             );
 
+            _logger.LogInformation(
+                "Inserindo produtor '{Id}'",
+                produtor.Id
+            );
             await _repository.AddAsync(produtor, cancellationToken);
         }
         catch (DomainException ex)

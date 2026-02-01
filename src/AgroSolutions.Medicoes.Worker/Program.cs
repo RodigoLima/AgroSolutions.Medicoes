@@ -6,51 +6,63 @@ using AgroSolutions.Medicoes.Infrastructure.Messaging;
 using AgroSolutions.Medicoes.Infrastructure.Observability;
 using AgroSolutions.Medicoes.Worker;
 using AgroSolutions.Medicoes.Worker.Consumers;
+using DotNetEnv;
 using MassTransit;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using Serilog;
 using Serilog.Enrichers.Span;
-using Serilog.Events;
+using Serilog.Sinks.OpenTelemetry;
 
+var envPath = Path.GetFullPath(
+    Path.Combine(AppContext.BaseDirectory, "..", "..", "..", "..", "..", ".env")
+);
+
+Console.WriteLine($"Tentando carregar .env em: {envPath}");
+
+Env.Load(envPath);
 
 var builder = Host.CreateApplicationBuilder(args);
 
 var environment = builder.Environment.EnvironmentName;
 
+var otlpEndpoint =
+    Environment.GetEnvironmentVariable("OTEL_EXPORTER_OTLP_ENDPOINT")
+    ?? throw new InvalidOperationException(
+        "OTEL_EXPORTER_OTLP_ENDPOINT não configurado");
+
 // Configure Serilog
+builder.Logging.ClearProviders();
+
 Log.Logger = new LoggerConfiguration()
-    .MinimumLevel.Information()
-    .MinimumLevel.Override("Microsoft", LogEventLevel.Warning)
-    .MinimumLevel.Override("System", LogEventLevel.Warning)
-
+    .ReadFrom.Configuration(builder.Configuration)
     .Enrich.FromLogContext()
+    .Enrich.WithEnvironmentName()
+    .Enrich.WithMachineName()
     .Enrich.WithThreadId()
-    .Enrich.WithProcessId()
-    .Enrich.WithProcessName()
-    .Enrich.With<ActivityEnricher>()
-
-    .WriteTo.Console(
-        outputTemplate:
-            "{Timestamp:yyyy-MM-dd HH:mm:ss.fff zzz} " +
-            "[{Level:u3}] " +
-            "{Message:lj} " +
-            "{Properties:j}" +
-            "{NewLine}{Exception}"
-    )
-
+    .Enrich.WithSpan()
+    .Enrich.WithProperty("Application", builder.Environment.ApplicationName)
+    .WriteTo.Console(outputTemplate:
+        "[{Timestamp:yyyy-MM-dd HH:mm:ss} {Level:u3}] {TraceId} {SpanId} {Message:lj}{NewLine}{Exception}")
     .WriteTo.OpenTelemetry(options =>
     {
-        options.Endpoint = builder.Configuration["OpenTelemetry:OtlpEndpoint"];
-        options.Protocol = Serilog.Sinks.OpenTelemetry.OtlpProtocol.Grpc;
+        options.Endpoint = otlpEndpoint;
+        options.Protocol = OtlpProtocol.Grpc;
+
+        options.ResourceAttributes = new Dictionary<string, object>
+        {
+            ["service.name"] = ActivitySourceProvider.ServiceName,
+            ["service.version"] = ActivitySourceProvider.ServiceVersion,
+            ["deployment.environment"] = builder.Environment.EnvironmentName
+        };
     })
     .CreateLogger();
-
 
 builder.Logging.AddSerilog(Log.Logger);
 builder.Services.AddObservability(builder.Configuration);
 
 builder.Services.AddHostedService<Worker>();
+// builder.Services.AddHostedService<MessageTestBootstrap>();
 builder.Services.Configure<EmailSettings>(
     builder.Configuration.GetSection("Email")
 );
@@ -60,8 +72,6 @@ builder.Services.AddInfrastructure(builder.Configuration);
 builder.Services.Configure<RabbitMqSettings>(
     builder.Configuration.GetSection("RabbitMq")
 );
-
-Console.WriteLine("RabbitMq:Port = " + builder.Configuration["RabbitMq:Port"]);
 
 builder.Services.AddMassTransit(x =>
 {

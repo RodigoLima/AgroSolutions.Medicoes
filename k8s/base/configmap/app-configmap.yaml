@@ -15,3 +15,5 @@ data:
   Email__Port: "${EMAIL_PORT}"
   Email__UseSsl: "${EMAIL_USE_SSL}"
   Email__From: "${EMAIL_FROM}"
+
+  OTEL_EXPORTER_OTLP_ENDPOINT: "${OTEL_EXPORTER_OTLP_ENDPOINT}"

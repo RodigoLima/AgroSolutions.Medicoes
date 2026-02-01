@@ -1,3 +1,5 @@
+auth_enabled: false
+
 server:
   http_listen_port: 3200
 
@@ -11,48 +13,33 @@ distributor:
           endpoint: 0.0.0.0:4318
 
 ingester:
-  # Menos churn de blocos em ambiente local
-  max_block_duration: 10m
+  lifecycler:
+    ring:
+      kvstore:
+        store: inmemory
+      replication_factor: 1
+  trace_idle_period: 10s
+  max_block_bytes: 1_000_000
+  max_block_duration: 5m
 
 compactor:
   compaction:
-    # ✅ Retenção correta (único lugar válido)
-    block_retention: 6h
-
-metrics_generator:
-  ring:
-    kvstore:
-      store: inmemory
-
-  processor:
-    span_metrics:
-      dimensions:
-        - service.name
-        - span.name
-        - http.method
-        - http.status_code
-
-    service_graphs:
-      dimensions:
-        - service.name
-
-  registry:
-    external_labels:
-      source: tempo
-      cluster: docker-compose
-
-  storage:
-    path: /tmp/tempo/generator/wal
-    remote_write:
-      - url: http://prometheus:9090/api/v1/write
-        send_exemplars: true
+    block_retention: 24h
 
 storage:
   trace:
     backend: local
-
-    wal:
-      path: /tmp/tempo/wal
-
     local:
-      path: /tmp/tempo/blocks
+      path: /var/tempo/traces
+    wal:
+      path: /var/tempo/wal
+
+querier:
+  frontend_worker:
+    frontend_address: 127.0.0.1:9095
+
+query_frontend:
+  search:
+    duration_slo: 5s
+  trace_by_id:
+    duration_slo: 5s

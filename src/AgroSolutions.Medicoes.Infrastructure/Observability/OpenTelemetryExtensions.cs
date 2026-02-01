@@ -2,7 +2,6 @@ using MassTransit.Logging;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Npgsql;
-using OpenTelemetry;
 using OpenTelemetry.Logs;
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Resources;
@@ -17,8 +16,6 @@ public static class OpenTelemetryExtensions
         IConfiguration configuration
     )
     {
-        var otlpEndpoint = configuration["OpenTelemetry:OtlpEndpoint"];
-
         services.AddOpenTelemetry()
             .ConfigureResource(resource => resource
                 .AddService(
@@ -28,26 +25,19 @@ public static class OpenTelemetryExtensions
                 {
                     ["deployment.environment"] = configuration["Environment"] ?? "development",
                     ["host.name"] = Environment.MachineName
-                })
-                .AddEnvironmentVariableDetector())
+                }))
             .WithTracing(tracing => tracing
                 .AddSource(ActivitySourceProvider.ServiceName)
                 .AddSource(DiagnosticHeaders.DefaultListenerName)
                 .AddNpgsql()
-                .AddOtlpExporter(options =>
-                {
-                    options.Endpoint = new Uri(otlpEndpoint!);
-                }))
+                .AddOtlpExporter())
             .WithMetrics(metrics => metrics
-                .AddMeter(ActivitySourceProvider.ServiceName)
-                .AddMeter("MassTransit")
                 .AddRuntimeInstrumentation()
-                .AddOtlpExporter(options =>
-                {
-                    options.Endpoint = new Uri(otlpEndpoint!);
-                }));
+                .AddProcessInstrumentation()
+                .AddMeter(ActivitySourceProvider.ServiceName)
+                .AddMeter("OpenTelemetry.Instrumentation.Process")
+                .AddOtlpExporter());
 
         return services;
-
     }
 }
