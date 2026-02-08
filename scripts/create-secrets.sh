@@ -20,19 +20,13 @@ RABBITMQ_DEFAULT_USER="${RABBITMQ_DEFAULT_USER:-admin}"
 RABBITMQ_DEFAULT_PASS="${RABBITMQ_DEFAULT_PASS:-admin123}"
 RABBITMQ_HOST="${RABBITMQ_HOST:-rabbitmq-service.sensor-ingestion.svc.cluster.local}"
 RABBITMQ_PORT="${RABBITMQ_PORT:-5672}"
-
-# validações
-: "${RABBITMQ_DEFAULT_USER:?}"
-: "${RABBITMQ_DEFAULT_PASS:?}"
-
-: "${GF_SECURITY_ADMIN_USER:?Variável GF_SECURITY_ADMIN_USER não definida}"
-: "${GF_SECURITY_ADMIN_PASSWORD:?Variável GF_SECURITY_ADMIN_PASSWORD não definida}"
-
-: "${DB_HOST:?Variável DB_HOST não definida}"
-: "${DB_PORT:?Variável DB_PORT não definida}"
-: "${DB_USER:?Variável DB_USER não definida}"
-: "${DB_PASSWORD:?Variável DB_PASSWORD não definida}"
-: "${DB_NAME:?Variável DB_NAME não definida}"
+GF_SECURITY_ADMIN_USER="${GF_SECURITY_ADMIN_USER:-admin}"
+GF_SECURITY_ADMIN_PASSWORD="${GF_SECURITY_ADMIN_PASSWORD:-admin}"
+DB_HOST="${DB_HOST:-postgres}"
+DB_PORT="${DB_PORT:-5432}"
+DB_USER="${DB_USER:-docker}"
+DB_PASSWORD="${DB_PASSWORD:-docker}"
+DB_NAME="${DB_NAME:-AgroSolutionsMedicoes}"
 
 echo "🔐 Criando secret: $RABBIT_SECRET"
 kubectl create secret generic $RABBIT_SECRET \
