@@ -1,7 +1,6 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# ========= CONFIG =========
 CLUSTER_NAME="agro-dev"
 KIND_CONFIG_FILE="k8s/kind/config.yaml"
 export RABBITMQ_HOST="${RABBITMQ_HOST:-rabbitmq-service.sensor-ingestion.svc.cluster.local}"
@@ -9,11 +8,9 @@ export RABBITMQ_PORT="${RABBITMQ_PORT:-5672}"
 export RABBITMQ_DEFAULT_USER="${RABBITMQ_DEFAULT_USER:-admin}"
 export RABBITMQ_DEFAULT_PASS="${RABBITMQ_DEFAULT_PASS:-admin123}"
 
-# ========= PATHS =========
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ROOT_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
 
-# ========= HELPERS =========
 log() {
   echo "▶ $1"
 }
@@ -27,12 +24,10 @@ check_command() {
   command -v "$1" >/dev/null 2>&1 || error "Comando '$1' não encontrado"
 }
 
-# ========= CHECKS =========
 log "Verificando dependências"
 check_command kubectl
 check_command kind
 
-# ========= CLUSTER =========
 if kind get clusters | grep -q "^${CLUSTER_NAME}$"; then
     log "Cluster Kind '$CLUSTER_NAME' já existe"
 else
@@ -47,8 +42,6 @@ else
     fi
 fi
 
-
-# ========= WAIT CLUSTER =========
 log "Aguardando cluster ficar acessível"
 kubectl wait --for=condition=Ready nodes --all --timeout=120s
 
@@ -57,14 +50,12 @@ if [[ "$CURRENT_CONTEXT" != kind-* ]]; then
   error "Contexto atual ($CURRENT_CONTEXT) não é um cluster Kind"
 fi
 
-# ========= BUILD WORKER IMAGE =========
 log "Buildando imagem do worker"
 docker build -t agro-medicoes-worker:dev "$ROOT_DIR"
 
 log "Carregando imagem no Kind"
 kind load docker-image agro-medicoes-worker:dev --name "$CLUSTER_NAME"
 
-# ========= DEPLOY =========
 log "Criando namespaces"
 kubectl apply -f "$ROOT_DIR/k8s/base/namespaces"
 
