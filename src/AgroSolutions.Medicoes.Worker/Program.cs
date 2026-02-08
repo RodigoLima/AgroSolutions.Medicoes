@@ -61,7 +61,8 @@ Log.Logger = new LoggerConfiguration()
 builder.Logging.AddSerilog(Log.Logger);
 builder.Services.AddObservability(builder.Configuration);
 
-builder.Services.AddHostedService<Worker>();
+builder.Services.AddHostedService<PrometheusMetricsHostedService>();
+    builder.Services.AddHostedService<Worker>();
 // builder.Services.AddHostedService<MessageTestBootstrap>();
 builder.Services.Configure<EmailSettings>(
     builder.Configuration.GetSection("Email")

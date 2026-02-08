@@ -54,6 +54,10 @@ spec:
         - name: agro-medicoes-worker
           image: agro-medicoes-worker:dev
           imagePullPolicy: IfNotPresent
+          ports:
+            - name: metrics
+              containerPort: 8080
+              protocol: TCP
 
           # Variáveis de ambiente
           env:

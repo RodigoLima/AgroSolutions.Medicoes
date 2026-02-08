@@ -26,11 +26,6 @@ kubectl create configmap grafana-datasources \
   -n agro-medicoes \
   --dry-run=client -o yaml | kubectl apply -f -
 
-kubectl create configmap grafana-dashboards \
-  --from-file="$ROOT_DIR/observability/grafana/dashboards" \
-  -n agro-medicoes \
-  --dry-run=client -o yaml | kubectl apply -f -
-
 echo "📦 Aplicando ConfigMap do APP"
 
 envsubst < "$ROOT_DIR/k8s/base/configmap/app-configmap.yaml" | kubectl apply -f - -n "$NAMESPACE"

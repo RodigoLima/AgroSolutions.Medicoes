@@ -48,6 +48,8 @@ spec:
 
             - name: grafana-dashboards
               mountPath: /var/lib/grafana/dashboards
+            - name: grafana-dashboards-agro
+              mountPath: /var/lib/grafana/dashboards/agro
 
           readinessProbe:
             httpGet:
@@ -81,6 +83,9 @@ spec:
         - name: grafana-dashboards
           configMap:
             name: grafana-dashboards
+        - name: grafana-dashboards-agro
+          configMap:
+            name: grafana-dashboards-agro
 
         - name: grafana-storage
           persistentVolumeClaim:
