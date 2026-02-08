@@ -11,4 +11,4 @@ spec:
     - name: interface
       port: 3000
       targetPort: 3000
-      nodePort: 30380
+      nodePort: 30000
