@@ -9,18 +9,21 @@ RABBIT_SECRET="rabbitmq-auth"
 GRAFANA_SECRET="grafana-auth"
 DATABASE_SECRET="database-config"
 
-if [ ! -f "$ENV_FILE" ]; then
-    echo "❌ Arquivo .env não encontrado em $ENV_FILE"
-    exit 1
-fi
+RABBITMQ_DEFAULT_USER="${RABBITMQ_DEFAULT_USER:-admin}"
+RABBITMQ_DEFAULT_PASS="${RABBITMQ_DEFAULT_PASS:-admin123}"
+RABBITMQ_HOST="${RABBITMQ_HOST:-rabbitmq-service.sensor-ingestion.svc.cluster.local}"
+RABBITMQ_PORT="${RABBITMQ_PORT:-5672}"
 
-set -a
-source "$ENV_FILE"
-set +a
+[ -f "$ENV_FILE" ] && set -a && source "$ENV_FILE" && set +a
+
+RABBITMQ_DEFAULT_USER="${RABBITMQ_DEFAULT_USER:-admin}"
+RABBITMQ_DEFAULT_PASS="${RABBITMQ_DEFAULT_PASS:-admin123}"
+RABBITMQ_HOST="${RABBITMQ_HOST:-rabbitmq-service.sensor-ingestion.svc.cluster.local}"
+RABBITMQ_PORT="${RABBITMQ_PORT:-5672}"
 
 # validações
-: "${RABBITMQ_DEFAULT_USER:?Variável RABBITMQ_DEFAULT_USER não definida}"
-: "${RABBITMQ_DEFAULT_PASS:?Variável RABBITMQ_DEFAULT_PASS não definida}"
+: "${RABBITMQ_DEFAULT_USER:?}"
+: "${RABBITMQ_DEFAULT_PASS:?}"
 
 : "${GF_SECURITY_ADMIN_USER:?Variável GF_SECURITY_ADMIN_USER não definida}"
 : "${GF_SECURITY_ADMIN_PASSWORD:?Variável GF_SECURITY_ADMIN_PASSWORD não definida}"

@@ -2,8 +2,12 @@
 set -euo pipefail
 
 # ========= CONFIG =========
-CLUSTER_NAME="dev-worker"
+CLUSTER_NAME="agro-dev"
 KIND_CONFIG_FILE="k8s/kind/config.yaml"
+export RABBITMQ_HOST="${RABBITMQ_HOST:-rabbitmq-service.sensor-ingestion.svc.cluster.local}"
+export RABBITMQ_PORT="${RABBITMQ_PORT:-5672}"
+export RABBITMQ_DEFAULT_USER="${RABBITMQ_DEFAULT_USER:-admin}"
+export RABBITMQ_DEFAULT_PASS="${RABBITMQ_DEFAULT_PASS:-admin123}"
 
 # ========= PATHS =========
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -76,7 +80,6 @@ kubectl apply -f "$ROOT_DIR/k8s/base/observability/collector"
 kubectl apply -f "$ROOT_DIR/k8s/base/observability/loki"
 kubectl apply -f "$ROOT_DIR/k8s/base/observability/prometheus"
 kubectl apply -f "$ROOT_DIR/k8s/base/observability/tempo"
-kubectl apply -f "$ROOT_DIR/k8s/base/rabbitmq"
 kubectl apply -f "$ROOT_DIR/k8s/base/postgresql"
 kubectl apply -f "$ROOT_DIR/k8s/base/grafana"
 kubectl apply -f "$ROOT_DIR/k8s/base/app"

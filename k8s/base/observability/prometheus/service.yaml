@@ -4,7 +4,10 @@ metadata:
   name: prometheus
   namespace: agro-medicoes
 spec:
+  type: NodePort
   selector:
     app: prometheus
   ports:
     - port: 9090
+      targetPort: 9090
+      nodePort: 30902
