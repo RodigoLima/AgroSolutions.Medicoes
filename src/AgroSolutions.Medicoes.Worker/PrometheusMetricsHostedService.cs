@@ -2,22 +2,22 @@ using Prometheus;
 
 namespace AgroSolutions.Medicoes.Worker;
 
-public class PrometheusMetricsHostedService : IHostedService
+public class PrometheusMetricsHostedService : IHostedService, IDisposable
 {
-    private readonly IHostApplicationLifetime _lifetime;
-    private KestrelMetricServer? _server;
-
-    public PrometheusMetricsHostedService(IHostApplicationLifetime lifetime)
-    {
-        _lifetime = lifetime;
-    }
+    private MetricServer? _server;
 
     public Task StartAsync(CancellationToken cancellationToken)
     {
-        _server = new KestrelMetricServer(8080);
-        _ = _server.StartAsync(_lifetime.ApplicationStopping);
+        _server = new MetricServer(8080);
+        _server.Start();
         return Task.CompletedTask;
     }
 
-    public Task StopAsync(CancellationToken cancellationToken) => Task.CompletedTask;
+    public Task StopAsync(CancellationToken cancellationToken)
+    {
+        _server?.Stop();
+        return Task.CompletedTask;
+    }
+
+    public void Dispose() => _server?.Dispose();
 }
