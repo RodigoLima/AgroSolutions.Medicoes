@@ -42,19 +42,20 @@ else
     fi
 fi
 
-log "Aguardando cluster ficar acessível"
-kubectl wait --for=condition=Ready nodes --all --timeout=120s
+WAIT_TO="${WAIT_TIMEOUT:-45}"
+if kubectl wait --for=condition=Ready nodes --all --timeout=0s 2>/dev/null; then log "Cluster já pronto."; else log "Aguardando cluster..."; kubectl wait --for=condition=Ready nodes --all --timeout="${WAIT_TO}s"; fi
 
 CURRENT_CONTEXT="$(kubectl config current-context)"
 if [[ "$CURRENT_CONTEXT" != kind-* ]]; then
   error "Contexto atual ($CURRENT_CONTEXT) não é um cluster Kind"
 fi
 
-log "Buildando imagem do worker"
-docker build -t agro-medicoes-worker:dev "$ROOT_DIR"
-
-log "Carregando imagem no Kind"
-kind load docker-image agro-medicoes-worker:dev --name "$CLUSTER_NAME"
+if [[ -z "${SKIP_BUILD:-}" ]]; then
+  log "Buildando imagem do worker"
+  docker build -t agro-medicoes-worker:dev "$ROOT_DIR"
+  log "Carregando imagem no Kind"
+  kind load docker-image agro-medicoes-worker:dev --name "$CLUSTER_NAME"
+fi
 
 log "Criando namespaces"
 kubectl apply -f "$ROOT_DIR/k8s/base/namespaces"
