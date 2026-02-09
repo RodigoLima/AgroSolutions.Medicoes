@@ -43,7 +43,7 @@ public class MailKitEmailService : IEmailService
             using var client = new SmtpClient();
             await client.ConnectAsync(
                 _settings.Host,
-                _settings.Port,
+                _settings.PortNumber,
                 _settings.UseSsl
                     ? SecureSocketOptions.StartTls
                     : SecureSocketOptions.None
