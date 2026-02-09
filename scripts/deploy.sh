@@ -30,6 +30,7 @@ check_command kind
 
 if kind get clusters | grep -q "^${CLUSTER_NAME}$"; then
     log "Cluster Kind '$CLUSTER_NAME' já existe"
+    [ "$(kubectl config current-context 2>/dev/null)" != "kind-${CLUSTER_NAME}" ] && kubectl config use-context kind-${CLUSTER_NAME} 2>/dev/null || true
 else
     log "Criando cluster Kind '$CLUSTER_NAME'"
     if [[ -f "$ROOT_DIR/$KIND_CONFIG_FILE" ]]; then
@@ -48,6 +49,15 @@ if kubectl wait --for=condition=Ready nodes --all --timeout=0s 2>/dev/null; then
 CURRENT_CONTEXT="$(kubectl config current-context)"
 if [[ "$CURRENT_CONTEXT" != kind-* ]]; then
   error "Contexto atual ($CURRENT_CONTEXT) não é um cluster Kind"
+fi
+
+PROJECTS_ROOT="${PROJECTS_ROOT:-$(cd "$ROOT_DIR/.." && pwd)}"
+DATA_INGESTION_ROOT="${DATA_INGESTION_ROOT:-$PROJECTS_ROOT/AgroSolutions.DataIngestion}"
+if ! kubectl get ns sensor-ingestion &>/dev/null && [ -d "$DATA_INGESTION_ROOT/k8s" ]; then
+  log "Aplicando RabbitMQ (dependência)..."
+  kubectl apply -f "$DATA_INGESTION_ROOT/k8s/namespaces.yaml"
+  kubectl apply -f "$DATA_INGESTION_ROOT/k8s/infra/rabbitmq"
+  kubectl wait --for=condition=ready pod -l app=rabbitmq -n sensor-ingestion --timeout="${WAIT_TO}s" 2>/dev/null || sleep 10
 fi
 
 if [[ -z "${SKIP_BUILD:-}" ]]; then
