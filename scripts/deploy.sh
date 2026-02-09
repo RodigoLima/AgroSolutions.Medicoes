@@ -88,9 +88,9 @@ kubectl apply -f "$ROOT_DIR/k8s/base/mailpit"
 kubectl apply -f "$ROOT_DIR/k8s/base/observability/collector"
 kubectl apply -f "$ROOT_DIR/k8s/base/observability/loki"
 kubectl apply -f "$ROOT_DIR/k8s/base/observability/prometheus"
-kubectl apply -f "$ROOT_DIR/k8s/base/observability/tempo"
 kubectl apply -f "$ROOT_DIR/k8s/base/postgresql"
 kubectl apply -f "$ROOT_DIR/k8s/base/grafana"
+kubectl rollout restart deployment/grafana -n agro-medicoes 2>/dev/null || true
 kubectl apply -f "$ROOT_DIR/k8s/base/app"
 
 log "Deploy concluído com sucesso ✅"

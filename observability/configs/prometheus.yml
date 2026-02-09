@@ -23,11 +23,6 @@ scrape_configs:
     static_configs:
       - targets: ['otel-collector:8889']
 
-  # ================= TEMPO =================
-  - job_name: tempo
-    static_configs:
-      - targets: ['tempo:3200']
-
   # ================= LOKI =================
   - job_name: loki
     static_configs:

@@ -44,10 +44,6 @@ data:
         static_configs:
           - targets: ['otel-collector:8888']
 
-      - job_name: tempo
-        static_configs:
-          - targets: ['tempo:3200']
-
       - job_name: loki
         static_configs:
           - targets: ['loki:3100']
