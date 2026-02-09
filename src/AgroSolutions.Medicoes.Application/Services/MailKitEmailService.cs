@@ -44,7 +44,7 @@ public class MailKitEmailService : IEmailService
             await client.ConnectAsync(
                 _settings.Host,
                 _settings.PortNumber,
-                _settings.UseSsl
+                _settings.UseSslValue
                     ? SecureSocketOptions.StartTls
                     : SecureSocketOptions.None
             );
