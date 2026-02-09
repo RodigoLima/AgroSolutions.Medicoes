@@ -19,6 +19,11 @@ data:
         send_batch_size: 1024
 
     exporters:
+      otlp/tempo:
+        endpoint: tempo:4317
+        tls:
+          insecure: true
+
       # Exporter Prometheus (métricas)
       prometheus:
         endpoint: 0.0.0.0:8889
@@ -39,6 +44,11 @@ data:
           level: info 
 
       pipelines:
+        traces:
+          receivers: [otlp]
+          processors: [batch]
+          exporters: [otlp/tempo]
+
         metrics:
           receivers: [otlp]
           processors: [batch]

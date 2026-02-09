@@ -32,6 +32,9 @@ spec:
           imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 3000
+          env:
+            - name: GF_FEATURE_TOGGLES_ENABLE
+              value: "tempoSearch,tempoBackendSearch"
           envFrom:
             - secretRef:
                 name: grafana-auth
