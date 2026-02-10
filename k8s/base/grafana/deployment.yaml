@@ -49,8 +49,6 @@ spec:
             - name: grafana-dashboard-provider
               mountPath: /etc/grafana/provisioning/dashboards
 
-            - name: grafana-dashboards
-              mountPath: /var/lib/grafana/dashboards
             - name: grafana-dashboards-agro
               mountPath: /var/lib/grafana/dashboards/agro
 
@@ -83,9 +81,6 @@ spec:
           configMap:
             name: grafana-dashboard-provider
 
-        - name: grafana-dashboards
-          configMap:
-            name: grafana-dashboards
         - name: grafana-dashboards-agro
           configMap:
             name: grafana-dashboards-agro
