@@ -27,6 +27,11 @@ kubectl create configmap grafana-dashboard-provider \
   -n agro-medicoes \
   --dry-run=client -o yaml | kubectl apply -f -
 
+kubectl create configmap grafana-dashboards-agro \
+  --from-file="$ROOT_DIR/observability/grafana/dashboards" \
+  -n agro-medicoes \
+  --dry-run=client -o yaml | kubectl apply -f -
+
 kubectl create configmap grafana-datasources \
   --from-file="$ROOT_DIR/observability/grafana/provisioning/datasources.yaml" \
   -n agro-medicoes \
