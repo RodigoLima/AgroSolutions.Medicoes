@@ -68,6 +68,7 @@ builder.Services.Configure<EmailSettings>(
     builder.Configuration.GetSection("Email")
 );
 builder.Services.AddApplication();
+builder.Services.AddScoped<AgroSolutions.Medicoes.Application.Interfaces.Services.IStatusTalhaoPublisher, StatusTalhaoPublisher>();
 builder.Services.AddInfrastructure(builder.Configuration);
 
 builder.Services.Configure<RabbitMqSettings>(

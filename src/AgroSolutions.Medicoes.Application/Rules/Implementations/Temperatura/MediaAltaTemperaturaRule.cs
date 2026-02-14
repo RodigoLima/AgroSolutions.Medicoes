@@ -2,6 +2,7 @@ using System.Diagnostics;
 using AgroSolutions.Medicoes.Application.Builders;
 using AgroSolutions.Medicoes.Application.Interfaces.Queries;
 using AgroSolutions.Medicoes.Application.Interfaces.Services;
+using AgroSolutions.Medicoes.Application;
 using AgroSolutions.Medicoes.Application.Rules.Abstractions;
 using AgroSolutions.Medicoes.Application.Rules.Contexts;
 using AgroSolutions.Medicoes.Domain.Entities;
@@ -15,6 +16,7 @@ public class MediaAltaTemperaturaRule(
     IAlertaMedicaoQueryRepository _alertaMedicaoQueryRepository, 
     IEmailService _emailService,
     IAlertaRepository _alertaRepository,
+    IStatusTalhaoPublisher _statusTalhaoPublisher,
     ILogger<MediaAltaTemperaturaRule> _logger
 ) : IRule<RegraPeriodoContext>
 {
@@ -73,6 +75,7 @@ public class MediaAltaTemperaturaRule(
                     );
 
                     await _alertaRepository.AddAsync(new Alerta(media.IdTalhao, DateTime.UtcNow, TIPOALERTA), cancellationToken);
+                    await _statusTalhaoPublisher.PublishAsync(media.IdTalhao, TalhaoStatusMapper.TipoAlertaToStatus(TIPOALERTA), cancellationToken);
                 }                
             }
         }
