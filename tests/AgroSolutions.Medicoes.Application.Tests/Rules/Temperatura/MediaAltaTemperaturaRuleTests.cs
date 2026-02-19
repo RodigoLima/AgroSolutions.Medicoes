@@ -16,6 +16,7 @@ public class MediaAltaTemperaturaRuleTests
     private readonly Mock<IAlertaMedicaoQueryRepository> _alertaMedicaoQueryRepository;
     private readonly Mock<IEmailService> _emailService;
     private readonly Mock<IAlertaRepository> _alertaRepository;
+    private readonly Mock<IStatusTalhaoPublisher> _statusTalhaoPublisher;
     private readonly Mock<ILogger<MediaAltaTemperaturaRule>> _mockLogger;
     private readonly MediaAltaTemperaturaRule _rule;
 
@@ -24,11 +25,13 @@ public class MediaAltaTemperaturaRuleTests
         _alertaMedicaoQueryRepository = new Mock<IAlertaMedicaoQueryRepository>();
         _emailService = new Mock<IEmailService>();
         _alertaRepository = new Mock<IAlertaRepository>();
+        _statusTalhaoPublisher = new Mock<IStatusTalhaoPublisher>();
         _mockLogger = new Mock<ILogger<MediaAltaTemperaturaRule>>();
         _rule = new MediaAltaTemperaturaRule(
             _alertaMedicaoQueryRepository.Object,
             _emailService.Object,
             _alertaRepository.Object,
+            _statusTalhaoPublisher.Object,
             _mockLogger.Object
         );
     }
